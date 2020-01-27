@@ -102,3 +102,13 @@ std::size_t CreateLocalBin(std::size_t size)
 	return t_memManager.AddBin(size);
 }
 
+void SetGlobalLogging(bool enable)
+{
+	g_logging = enable;
+}
+
+void SetLocalLogging(bool enable)
+{
+	t_logging = enable;
+}
+

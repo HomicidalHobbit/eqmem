@@ -2,6 +2,8 @@
 #include "bucket.h"
 #include <iostream>
 
+#include "memmanager.h"
+
 #define BUCKET_SLOTS 256
 #define MAX_BUCKET_ENTRY_SIZE 256
 
@@ -25,7 +27,10 @@ void* Bucket::Allocate()
 	m_freelist[0] = m_freelist.back();
 	m_freelist.pop_back();
 	--m_free;
+	if (m_isGlobal && g_logging)
+	{
 	std::cout << "Adding to Bucket at: " << ptr << std::endl;
+	}
 	return ptr;
 }
 
@@ -35,13 +40,15 @@ void Bucket::Deallocate(void* ptr)
 	{
 		const std::lock_guard<std::mutex>lock(*m_bucket_mutex);
 		std::size_t index = (reinterpret_cast<unsigned char*>(ptr) - m_buffer.get()) / m_slot_size;
-		std::cout << "Freeing Index: " << index << std::endl;
+		index++; // Keep warning silent for now
+		//std::cout << "Freeing Index: " << index << std::endl;
 		++m_free;
 	}
 	else
 	{
 		std::size_t index = (reinterpret_cast<unsigned char*>(ptr) - m_buffer.get()) / m_slot_size;
-		std::cout << "Freeing Index: " << index << std::endl;
+		//std::cout << "Freeing Index: " << index << std::endl;
+		index++; // Keep warning silent for now
 		++m_free;
 	}
 }

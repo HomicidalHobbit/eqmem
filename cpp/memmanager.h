@@ -57,6 +57,7 @@ public:
 	const std::size_t TotalAllocated() const { return m_allocated; }
 	const std::string& GetName() const { return m_name; }
 	static int SetTags(const char* name);
+	static void SetLeakWarning(bool enable);
 
 private:
 	std::unordered_map<void*, AllocatorEntry, PtrHash> m_map;
@@ -75,4 +76,7 @@ private:
 extern std::mutex* g_global_mutex;
 extern MemManager g_memManager;
 extern std::vector<std::string>* g_tags;
+extern bool g_logging;
 extern thread_local MemManager t_memManager;
+extern thread_local bool t_logging;
+

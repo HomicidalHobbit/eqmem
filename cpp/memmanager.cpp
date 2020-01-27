@@ -11,7 +11,10 @@
 
 thread_local MemManager t_memManager;
 thread_local std::thread::id t_tid;
+thread_local bool t_logging(false);
 
+bool g_logging(false);
+bool g_leakWarning(true);
 MemManager g_memManager(THREADSAFE);
 std::atomic<std::size_t> g_allocated(0);
 std::atomic<std::size_t> g_managerCount(0);
@@ -41,21 +44,24 @@ MemManager::MemManager(bool threadsafe)
 		g_allocators.emplace_back("Global");
 		g_allocators.emplace_back("Local");
 	}
-	if (m_isGlobal)
+	if (m_isGlobal && g_logging)
 	{
 			std::cout << "Created Global MemManager!\n";
 	}
 	else
 	{
-		std::cout << "Created MemManager for thread: 0x" << 
-		std::hex << m_id << std::dec << std::endl;
+		if (t_logging)
+		{
+			std::cout << "Created MemManager for thread: 0x" << 
+			std::hex << m_id << std::dec << std::endl;
+		}
 	}
 	++g_managerCount;	
 }
 
 MemManager::~MemManager()
 {
-	if (m_used)
+	if (m_used && g_leakWarning)
 	{
 		if (!m_map.empty())
 		{
@@ -207,7 +213,7 @@ void* MemManager::Allocate(std::size_t size, int tag, Allocator allocator)
 		m_allocated += size;
 	}
 		
-	if (m_isGlobal)
+	if (m_isGlobal && g_logging)
 	{
 		std::cout << "allocated ";
 		ReportSize(size);
@@ -218,15 +224,18 @@ void* MemManager::Allocate(std::size_t size, int tag, Allocator allocator)
 	}
 	else
 	{	
-		DisplayThread();
-		std::cout << "allocated "; 
-		ReportSize(size);
-		std::cout << "to: " << 
-		ptr << " - thread memory: "; 
-		ReportSize(m_allocated);
-		std::cout << "total memory: "; 
-		ReportSize(g_allocated);
-		std::cout << std::endl;	
+		if (t_logging)
+		{
+			DisplayThread();
+			std::cout << "allocated "; 
+			ReportSize(size);
+			std::cout << "to: " << 
+			ptr << " - thread memory: "; 
+			ReportSize(m_allocated);
+			std::cout << "total memory: "; 
+			ReportSize(g_allocated);
+			std::cout << std::endl;	
+		}
 	}
 	m_used = true;
 	return ptr;
@@ -270,7 +279,7 @@ AllocatorEntry MemManager::Deallocate(void* ptr)
 		}
 
 		m_map.erase(search);	
-		if (m_isGlobal)
+		if (m_isGlobal && g_logging)
 		{
 			std::cout << "deallocated "; 
 			ReportSize(size);
@@ -281,15 +290,18 @@ AllocatorEntry MemManager::Deallocate(void* ptr)
 		}
 		else
 		{
-			DisplayThread();
-			std::cout << "deallocated "; 
-			ReportSize(size);
-			std::cout << "at: " << 
-			ptr << " - thread_memory: ";
-			ReportSize(m_allocated);
-			std::cout << "total memory: ";
-			ReportSize(g_allocated);
-			std::cout << std::endl;
+			if (t_logging)
+			{
+				DisplayThread();
+				std::cout << "deallocated "; 
+				ReportSize(size);
+				std::cout << "at: " << 
+				ptr << " - thread_memory: ";
+				ReportSize(m_allocated);
+				std::cout << "total memory: ";
+				ReportSize(g_allocated);
+				std::cout << std::endl;
+			}
 		}
 	}
 	return entry;
@@ -298,7 +310,10 @@ AllocatorEntry MemManager::Deallocate(void* ptr)
 void MemManager::SetName(const char* name)
 {
 	m_name = name;
-	std::cout << "Thread " << m_tid << " named " << m_name << std::endl;
+	if ((m_isGlobal && g_logging) || (!m_isGlobal && t_logging))
+	{
+		std::cout << "Thread " << m_tid << " named " << m_name << std::endl;
+	}
 }
 
 void MemManager::AddBucket(std::size_t size)
@@ -307,17 +322,25 @@ void MemManager::AddBucket(std::size_t size)
 	{
 		const std::lock_guard<std::mutex>lock(m_bucket_mutex);
 		m_buckets.emplace_back(new Bucket(size,true));
-		std::cout << "Global ";	
+		if (g_logging)
+		{
+			std::cout << "Global Bucket Added for size: ";
+			ReportSize(size);
+			std::cout << std::endl;	
+		}
 	}
 	else
 	{
 		m_buckets.emplace_back(new Bucket(size, false));
-		std::cout << "Thread "; 
-		DisplayThread();
+		if (t_logging)
+		{
+			std::cout << "Thread "; 
+			DisplayThread();
+			std::cout << "Bucket Added for size: ";
+			ReportSize(size);
+			std::cout << std::endl;
+		}
 	}
-	std::cout << "Bucket Added for size: ";
-	ReportSize(size);
-	std::cout << std::endl;
 }
 
 std::size_t MemManager::AddBin(std::size_t size)
@@ -328,18 +351,26 @@ std::size_t MemManager::AddBin(std::size_t size)
 		const std::lock_guard<std::mutex>lock(m_bin_mutex);
 		result = m_bins.size();
 		m_bins.emplace_back(new Bin(size,true));
-		std::cout << "Global ";	
+		if (g_logging)
+		{
+			std::cout << "Global Bin: " << result << " Added of size: ";
+			ReportSize(size);
+			std::cout << std::endl;	
+		}
 	}
 	else
 	{
 		result = m_bins.size();
 		m_bins.emplace_back(new Bin(size, false));
-		std::cout << "Thread "; 
-		DisplayThread();
+		if (t_logging)
+		{
+			std::cout << "Thread "; 
+			DisplayThread();
+			std::cout << "Bin: " << result << " Added of size: ";
+			ReportSize(size);
+			std::cout << std::endl;
+		}
 	}
-	std::cout << "Bin: " << result << " Added of size: ";
-	ReportSize(size);
-	std::cout << std::endl;
 	return result;
 }
 

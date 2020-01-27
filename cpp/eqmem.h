@@ -16,5 +16,7 @@ extern "C"
 	std::size_t SetTags(const char* name);
 	AllocatorEntry TransferFrom(void* ptr);
 	void TransferTo(const AllocatorEntry& entry);
+	void SetGlobalLogging(bool enable);
+	void SetLocalLogging(bool enable);
 }
 
