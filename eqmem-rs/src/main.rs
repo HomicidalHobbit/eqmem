@@ -1,3 +1,5 @@
+#![allow(dead_code)]
+
 use libc::c_void;
 use std::marker::PhantomData;
 use std::mem;
@@ -13,7 +15,6 @@ extern "C" {
 fn main() {
     println!("Hello, world!");
     let t = thread::spawn(move || {
-        println!("Second Thread");
         let secs = time::Duration::from_secs(5);
         thread::sleep(secs);
         unsafe {
@@ -28,34 +29,24 @@ fn main() {
         t.join().unwrap();
         Deallocate(ptr);
     }
-    let _b = BinVec::<usize>::with_capacity(1024);
+    let mut b = BinVec::<usize>::with_capacity(1024, 0);
+    b.push(0)
 }
 
 struct BinVec<T> {
-    vec: Vec<T>,
+    phantom: PhantomData<T>,
 }
 
 impl<T> BinVec<T> {
-    fn with_capacity(size: usize) -> BinVec<T> {
+    fn new(_bin: usize) -> Vec<T> {
+        let v = Vec::<T>::new();
+        // TODO: inform allocator that we have been created.
+        v
+    }
+    fn with_capacity(size: usize, _bin: usize) -> Vec<T> {
         unsafe {
             let ptr: *mut c_void = LocalAllocate(mem::size_of::<T>() * size, 0);
-            BinVec {
-                vec: Vec::<T>::from_raw_parts(ptr as *mut T, 0, 1),
-            }
-        }
-    }
-}
-
-// This drop is going to do a double free!!!
-// Since we're replacing the global_allocator. I don't think this matters we only need to make sure
-// that the allocator is tracking the memory.
-//
-// This is here merely to prove that point and for reference.
-
-impl<T> Drop for BinVec<T> {
-    fn drop(&mut self) {
-        unsafe {
-            Deallocate(self.vec.as_mut_ptr() as _);
+            Vec::<T>::from_raw_parts(ptr as *mut T, 0, 1)
         }
     }
 }
