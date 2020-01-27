@@ -4,4 +4,4 @@ rm -rf ../../lib/linux
 mkdir -p ../../lib/linux
 mv -f libeqmem.a ../../lib/linux
 rm *.o
-clang++ -std=c++11 -Wall -L../../lib/linux -l eqmem -o test -Ofast ../main.cpp
+clang++ -std=c++11 -fPIC -Wall -L../../lib/linux -l eqmem -l pthread -o test -Ofast ../main.cpp
