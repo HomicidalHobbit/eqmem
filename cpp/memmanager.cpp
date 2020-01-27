@@ -1,5 +1,6 @@
 #include "memmanager.h"
 
+#include <atomic>
 #include <iomanip>
 #include <iostream>
 #include <sstream>

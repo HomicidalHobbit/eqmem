@@ -1,4 +1,7 @@
 *.a
 test
 .DS_Store
+**/target/
+/target/
+**/*.rs.bk
 
