@@ -41,7 +41,7 @@ void* LocalAllocate(std::size_t size, int tag)
 }
 
 void Deallocate(void* ptr)
-{
+{	std::cout << "Request Dealloc: " << ptr << " ";
 	AllocatorEntry entry = t_memManager.Deallocate(ptr);
 
 	// If we couldn't find the thread local entry, then we check the global one under a lock
@@ -126,23 +126,23 @@ void* Reallocate(void* ptr, std::size_t size)
 
 void* Malloc(std::size_t size)
 {
-//	std::cout << "Malloc of " << size << " at: ";
+	std::cout << "Malloc of " << size << " at: ";
 	void* ptr = malloc(size);
-//	std::cout << ptr << std::endl;
+	std::cout << ptr << std::endl;
 	return ptr;
 }
 
 void Free(void* ptr)
 {
-//	std::cout << "Free: " << ptr << std::endl;
+	std::cout << "Free: " << ptr << std::endl;
 	free(ptr);
 }
 
 void* Realloc(void* ptr, std::size_t size)
 {
-//	std::cout << "Realloc: " << ptr << " to size " << size;
+	std::cout << "Realloc: " << ptr << " to size " << size;
 	void* new_ptr = realloc(ptr, size);
-//	std::cout << " now at: " << new_ptr << std::endl;
+	std::cout << " now at: " << new_ptr << std::endl;
 	return new_ptr;
 }
 
