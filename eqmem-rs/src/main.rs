@@ -30,28 +30,27 @@ fn main() {
     unsafe {
         SetLocalLogging(true);
     }
-
-
-        
+   
     let t = thread::spawn(move || {
-        let secs = time::Duration::from_secs(5);
+        let secs = time::Duration::from_secs(1);
         thread::sleep(secs);
         unsafe {
             SetLocalLogging(true);
             let ptr = LocalAllocate(1024 * 1024 * 128, 0);
             Deallocate(ptr);
-            let b = BinVec::<usize>::with_capacity(1024, 0);
-            drop(b);
+            let _b = BinVec::<usize>::with_capacity(8192, 0);
         }
     });
 
     unsafe {
-        //let ptr = LocalAllocate(1024, 0);
+        let ptr = LocalAllocate(32768, 0);
+        Deallocate(ptr);
         t.join().unwrap();
-        //Deallocate(ptr);
+    
     }
-    //let mut b = BinVec::<usize>::with_capacity(1024, 0);
-    //b.push(0);
+    //let _b = BinVec::<usize>::with_capacity(1024, 0);
+
+    println!("HERE");
     FLAG.store(false, Ordering::Relaxed);
 }
 

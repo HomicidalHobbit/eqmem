@@ -48,18 +48,19 @@ void Deallocate(void* ptr)
 	if (!entry.m_size)
 	{
 		t_memManager.DisplayThread();
-		std::cout << " could not find " << ptr << std::endl; 
+		std::cout << "could not find " << ptr;
 		const std::lock_guard<std::mutex>lock(*g_global_mutex);
 		{
 			entry = g_memManager.Deallocate(ptr);
 		}
 		if (!entry.m_size)
 		{
-			std::cout << "ERROR: Cannot locate " << ptr << "!!!" << std::endl;
+			std::cout << " ERROR: Cannot locate " << ptr << " in Global Manager!!!" << std::endl;
 			free(ptr);
 		}
 		else
 		{
+			std::cout << ptr << " was found in Global Manager" << std::endl;
 			free(ptr);
 		}
 	}
@@ -117,30 +118,31 @@ void SetLocalLogging(bool enable)
 
 void* Reallocate(void* ptr, std::size_t size)
 {
-	std::cout << "[Reallocating] " << std::endl;
+//	std::cout << "[Reallocating] ";
 	Deallocate(ptr);
+//	std::cout << "[Reallocating] ";
 	return LocalAllocate(size, 0);
 }
 
 void* Malloc(std::size_t size)
 {
-	std::cout << "Malloc of " << size << " at: ";
+//	std::cout << "Malloc of " << size << " at: ";
 	void* ptr = malloc(size);
-	std::cout << ptr << std::endl;
+//	std::cout << ptr << std::endl;
 	return ptr;
 }
 
 void Free(void* ptr)
 {
-	std::cout << "Free: " << ptr << std::endl;
+//	std::cout << "Free: " << ptr << std::endl;
 	free(ptr);
 }
 
 void* Realloc(void* ptr, std::size_t size)
 {
-	std::cout << "Realloc: " << ptr << " to size " << size;
+//	std::cout << "Realloc: " << ptr << " to size " << size;
 	void* new_ptr = realloc(ptr, size);
-	std::cout << " now at: " << new_ptr << std::endl;
+//	std::cout << " now at: " << new_ptr << std::endl;
 	return new_ptr;
 }
 
