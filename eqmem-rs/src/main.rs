@@ -1,10 +1,14 @@
 #![allow(dead_code)]
 
+use std::mem::forget;
+use std::sync::atomic::{AtomicBool, Ordering};
 use libc::c_void;
 use std::alloc::{GlobalAlloc, Layout};
 use std::marker::PhantomData;
 use std::mem;
 use std::{thread, time};
+
+static FLAG: AtomicBool = AtomicBool::new(false);
 
 #[global_allocator]
 static A: EQMem = EQMem;
@@ -22,7 +26,13 @@ extern "C" {
 
 fn main() {
     println!("Hello, world!");
-    /*
+    FLAG.store(true, Ordering::Relaxed);
+    unsafe {
+        SetLocalLogging(true);
+    }
+
+
+        
     let t = thread::spawn(move || {
         let secs = time::Duration::from_secs(5);
         thread::sleep(secs);
@@ -30,17 +40,19 @@ fn main() {
             SetLocalLogging(true);
             let ptr = LocalAllocate(1024 * 1024 * 128, 0);
             Deallocate(ptr);
+            let b = BinVec::<usize>::with_capacity(1024, 0);
+            drop(b);
         }
     });
-    */
+
     unsafe {
-        SetLocalLogging(true);
-        let ptr = LocalAllocate(1024, 0);
-        //    t.join().unwrap();
-        Deallocate(ptr);
+        //let ptr = LocalAllocate(1024, 0);
+        t.join().unwrap();
+        //Deallocate(ptr);
     }
-    let mut _b = BinVec::<usize>::with_capacity(1024, 0);
+    //let mut b = BinVec::<usize>::with_capacity(1024, 0);
     //b.push(0);
+    FLAG.store(false, Ordering::Relaxed);
 }
 
 struct BinVec<T> {
@@ -66,17 +78,26 @@ pub struct EQMem;
 
 unsafe impl GlobalAlloc for EQMem {
     unsafe fn alloc(&self, layout: Layout) -> *mut u8 {
-        //Malloc(layout.size()) as *mut u8
-        LocalAllocate(layout.size(), 0) as *mut u8
+        if FLAG.load(Ordering::SeqCst) {
+            LocalAllocate(layout.size(), 0) as *mut u8
+        } else {
+           Malloc(layout.size()) as *mut u8
+        }
     }
 
     unsafe fn dealloc(&self, ptr: *mut u8, _layout: Layout) {
-        //Free(ptr as *mut c_void);
-        Deallocate(ptr as *mut c_void);
+        if FLAG.load(Ordering::SeqCst) {
+            Deallocate(ptr as *mut c_void);
+        } else {
+            Free(ptr as *mut c_void);
+        }
     }
 
     unsafe fn realloc(&self, ptr: *mut u8, _layout: Layout, new_size: usize) -> *mut u8 {
-        //Realloc(ptr as *mut c_void, new_size) as *mut u8
-        Reallocate(ptr as *mut c_void, new_size) as *mut u8
+        if FLAG.load(Ordering::SeqCst) {        
+            Reallocate(ptr as *mut c_void, new_size) as *mut u8
+        } else {
+            Realloc(ptr as *mut c_void, new_size) as *mut u8
+        }
     }
 }

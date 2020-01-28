@@ -47,13 +47,16 @@ void Deallocate(void* ptr)
 	// If we couldn't find the thread local entry, then we check the global one under a lock
 	if (!entry.m_size)
 	{
+		t_memManager.DisplayThread();
+		std::cout << " could not find " << ptr << std::endl; 
 		const std::lock_guard<std::mutex>lock(*g_global_mutex);
 		{
 			entry = g_memManager.Deallocate(ptr);
 		}
 		if (!entry.m_size)
 		{
-			std::cout << "ERROR: Cannot locate" << ptr << "!!!" << std::endl;
+			std::cout << "ERROR: Cannot locate " << ptr << "!!!" << std::endl;
+			free(ptr);
 		}
 		else
 		{

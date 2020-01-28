@@ -64,7 +64,16 @@ MemManager::MemManager(bool threadsafe)
 
 MemManager::~MemManager()
 {
-	std::cout << "BYE!\n" << std::flush;
+	std::cout << "BYE from: ";
+	if (m_isGlobal)
+	{
+		std::cout << "Global MemManager";
+	} 
+	else
+	{
+		DisplayThread();
+	}
+	std::cout << std::endl;
 	if (m_used && g_leakWarning)
 	{
 		if (!m_map.empty())
@@ -132,7 +141,7 @@ void MemManager::DisplayTime()
 {
 	std::chrono::system_clock::time_point now = std::chrono::system_clock::now();
 	std::time_t t = std::chrono::system_clock::to_time_t(now);
-	std::cout << std::put_time(std::localtime(&t), "%F %T") << " ";
+	std::cout << std::put_time(std::localtime(&t), "%T") << " ";
 }
 
 void MemManager::ReportSize(std::size_t size)
@@ -204,6 +213,7 @@ Bucket* MemManager::FindBucket(std::size_t size)
 void* MemManager::Allocate(std::size_t size, int tag, Allocator allocator)
 {
 	void* ptr = nullptr;
+	
 	if (size <= MAX_BUCKET_ENTRY_SIZE)
 	{
 		if (Bucket* bucket = FindBucket(size))
@@ -216,6 +226,7 @@ void* MemManager::Allocate(std::size_t size, int tag, Allocator allocator)
 			}
 		}
 	}
+	
 	if (!ptr)
 	{
 		ptr = malloc(size);
