@@ -1,6 +1,8 @@
 #include "memmanager.h"
 
 #include <atomic>
+#include <chrono>
+#include <ctime>
 #include <iomanip>
 #include <iostream>
 #include <sstream>
@@ -126,6 +128,13 @@ void MemManager::DisplayThread()
 	std::cout << " ";
 }
 
+void MemManager::DisplayTime()
+{
+	std::chrono::system_clock::time_point now = std::chrono::system_clock::now();
+	std::time_t t = std::chrono::system_clock::to_time_t(now);
+	std::cout << std::put_time(std::localtime(&t), "%F %T") << " ";
+}
+
 void MemManager::ReportSize(std::size_t size)
 {
 	if (size < 1024)
@@ -217,7 +226,8 @@ void* MemManager::Allocate(std::size_t size, int tag, Allocator allocator)
 		
 	if (m_isGlobal && g_logging)
 	{
-		std::cout << "allocated ";
+		DisplayTime();
+		std::cout << "alloc ";
 		ReportSize(size);
 		std::cout << "to: " << 
 		ptr << " - total memory: ";
@@ -228,8 +238,9 @@ void* MemManager::Allocate(std::size_t size, int tag, Allocator allocator)
 	{	
 		if (t_logging)
 		{
+			DisplayTime();
 			DisplayThread();
-			std::cout << "allocated "; 
+			std::cout << "alloc "; 
 			ReportSize(size);
 			std::cout << "to: " << 
 			ptr << " - thread memory: "; 
@@ -283,7 +294,8 @@ AllocatorEntry MemManager::Deallocate(void* ptr)
 		m_map.erase(search);	
 		if (m_isGlobal && g_logging)
 		{
-			std::cout << "deallocated "; 
+			DisplayTime();
+			std::cout << "freed "; 
 			ReportSize(size);
 			std::cout << "at: " << 
 			ptr << " - total memory: ";
@@ -294,8 +306,9 @@ AllocatorEntry MemManager::Deallocate(void* ptr)
 		{
 			if (t_logging)
 			{
+				DisplayTime();
 				DisplayThread();
-				std::cout << "deallocated "; 
+				std::cout << "freed "; 
 				ReportSize(size);
 				std::cout << "at: " << 
 				ptr << " - thread_memory: ";

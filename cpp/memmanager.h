@@ -52,6 +52,7 @@ public:
 	AllocatorEntry Deallocate(void* ptr);
 	void SetName(const char* name); 
 	void DisplayThread();
+	void DisplayTime();
 	void ReportSize(std::size_t size);
 	const std::size_t GetThreadID() const { return m_id; } 
 	const std::size_t TotalAllocated() const { return m_allocated; }

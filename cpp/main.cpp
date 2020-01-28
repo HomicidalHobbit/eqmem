@@ -14,8 +14,8 @@ void f2()
 
 int main(int argc, char** argv)
 {
-	SetGlobalLogging(false);
-	SetLocalLogging(false);
+	SetGlobalLogging(true);
+	SetLocalLogging(true);
 	SetName("Main Thread");
 	SetTags("Shader");
 	CreateLocalBucket(64);
