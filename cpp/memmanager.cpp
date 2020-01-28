@@ -12,9 +12,9 @@
 
 thread_local MemManager t_memManager;
 thread_local std::thread::id t_tid;
-thread_local bool t_logging(false);
+thread_local bool t_logging(true);
 
-bool g_logging(false);
+bool g_logging(true);
 bool g_leakWarning(true);
 MemManager g_memManager(THREADSAFE);
 std::atomic<std::size_t> g_allocated(0);
@@ -62,6 +62,7 @@ MemManager::MemManager(bool threadsafe)
 
 MemManager::~MemManager()
 {
+	std::cout << "BYE!\n" << std::flush;
 	if (m_used && g_leakWarning)
 	{
 		if (!m_map.empty())

@@ -112,3 +112,32 @@ void SetLocalLogging(bool enable)
 	t_logging = enable;
 }
 
+void* Reallocate(void* ptr, std::size_t size)
+{
+	std::cout << "[Reallocating] " << std::endl;
+	Deallocate(ptr);
+	return LocalAllocate(size, 0);
+}
+
+void* Malloc(std::size_t size)
+{
+	std::cout << "Malloc of " << size << " at: ";
+	void* ptr = malloc(size);
+	std::cout << ptr << std::endl;
+	return ptr;
+}
+
+void Free(void* ptr)
+{
+	std::cout << "Free: " << ptr << std::endl;
+	free(ptr);
+}
+
+void* Realloc(void* ptr, std::size_t size)
+{
+	std::cout << "Realloc: " << ptr << " to size " << size;
+	void* new_ptr = realloc(ptr, size);
+	std::cout << " now at: " << new_ptr << std::endl;
+	return new_ptr;
+}
+

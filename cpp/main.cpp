@@ -9,7 +9,7 @@ void f2()
 	SetLocalLogging(true);
 	void* ptr = LocalAllocate(1024*1024 * 280);
 	std::this_thread::sleep_for(std::chrono::seconds(5));
-//	Deallocate(ptr);
+	Deallocate(ptr);
 }
 
 int main(int argc, char** argv)

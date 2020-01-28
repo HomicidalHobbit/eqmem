@@ -8,6 +8,7 @@ extern "C"
 	void* Allocate(std::size_t size, int tag = 0);
 	void* LocalAllocate(std::size_t size, int tag = 0);
 	void Deallocate(void* ptr);
+	void* Reallocate(void* ptr, std::size_t size);
 	std::size_t CreateBin(std::size_t size);
 	std::size_t CreateLocalBin(std::size_t size);
 	void CreateBucket(std::size_t size);
@@ -18,5 +19,9 @@ extern "C"
 	void TransferTo(const AllocatorEntry& entry);
 	void SetGlobalLogging(bool enable);
 	void SetLocalLogging(bool enable);
+
+	void* Malloc(std::size_t size);
+	void Free(void* ptr);
+	void* Realloc(void* ptr, std::size_t size);
 }
 
