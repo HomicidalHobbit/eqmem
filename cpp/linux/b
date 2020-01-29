@@ -1,8 +1,7 @@
 clang++ -c -std=c++11 -fPIC -Wall -I../ -Ofast ../eqmem.cpp ../bin.cpp ../bucket.cpp ../memmanager.cpp
-./libman eqmem.o bin.o bucket.o memmanager.o -o libeqmem.a
+ar rc libeqmem.a eqmem.o bin.o bucket.o memmanager.o
 rm -rf ../../lib/linux
 mkdir -p ../../lib/linux
 mv -f libeqmem.a ../../lib/linux
-#clang++ -std=c++11 -fPIC -Wall -I../ -L../../lib/linux -leqmem -l pthread -o test -Ofast ../main.cpp
-clang++ -std=c++11 -lpthread -Wall -I../ -Ofast ../main.cpp ../eqmem.cpp ../bin.cpp ../bucket.cpp ../memmanager.cpp -o test
+clang++ -std=c++11 -fPIC -Wall -I../ ../main.cpp -L../../lib/linux -leqmem -l pthread -o test -Ofast
 rm *.o

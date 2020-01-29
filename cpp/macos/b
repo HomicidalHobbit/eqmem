@@ -4,4 +4,4 @@ rm -rf ../../lib/macos
 mkdir -p ../../lib/macos
 mv -f libeqmem.a ../../lib/macos
 rm *.o
-clang++ -std=c++11 -Wall -L../../lib/macos -l eqmem -o test -Ofast ../main.cpp
+clang++ -std=c++11 -Wall ../main.cpp -L../../lib/macos -l eqmem -o test -Ofast
