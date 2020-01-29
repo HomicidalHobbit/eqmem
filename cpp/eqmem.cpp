@@ -41,7 +41,7 @@ void* LocalAllocate(std::size_t size, int tag)
 }
 
 void Deallocate(void* ptr)
-{	std::cout << "Request Dealloc: " << ptr << " ";
+{
 	AllocatorEntry entry = t_memManager.Deallocate(ptr);
 
 	// If we couldn't find the thread local entry, then we check the global one under a lock

@@ -262,7 +262,6 @@ void* MemManager::Allocate(std::size_t size, int tag, Allocator allocator)
 			std::cout << std::endl;	
 		}
 	}
-	std::cout << "Map Size: " << m_map.size() << std::endl;
 	m_used = true;
 	return ptr;
 }
@@ -331,7 +330,6 @@ AllocatorEntry MemManager::Deallocate(void* ptr)
 				std::cout << std::endl;
 			}
 		}
-		std::cout << "Map Size: " << m_map.size() << std::endl;
 	}
 	return entry;
 }

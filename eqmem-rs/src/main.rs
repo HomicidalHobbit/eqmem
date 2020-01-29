@@ -1,14 +1,14 @@
 #![allow(dead_code)]
 
-use std::mem::forget;
-use std::sync::atomic::{AtomicBool, Ordering};
 use libc::c_void;
 use std::alloc::{GlobalAlloc, Layout};
 use std::marker::PhantomData;
 use std::mem;
+use std::mem::forget;
+use std::sync::atomic::{AtomicBool, Ordering};
 use std::{thread, time};
 
-static FLAG: AtomicBool = AtomicBool::new(false);
+static FLAG: AtomicBool = AtomicBool::new(true);
 
 #[global_allocator]
 static A: EQMem = EQMem;
@@ -26,11 +26,11 @@ extern "C" {
 
 fn main() {
     println!("Hello, world!");
-    FLAG.store(true, Ordering::Relaxed);
+    //FLAG.store(true, Ordering::Relaxed);
     unsafe {
         SetLocalLogging(true);
     }
-   
+
     let t = thread::spawn(move || {
         let secs = time::Duration::from_secs(1);
         thread::sleep(secs);
@@ -46,12 +46,11 @@ fn main() {
         let ptr = LocalAllocate(32768, 0);
         Deallocate(ptr);
         t.join().unwrap();
-    
     }
     //let _b = BinVec::<usize>::with_capacity(1024, 0);
 
     println!("HERE");
-    FLAG.store(false, Ordering::Relaxed);
+    //FLAG.store(false, Ordering::Relaxed);
 }
 
 struct BinVec<T> {
@@ -80,7 +79,7 @@ unsafe impl GlobalAlloc for EQMem {
         if FLAG.load(Ordering::SeqCst) {
             LocalAllocate(layout.size(), 0) as *mut u8
         } else {
-           Malloc(layout.size()) as *mut u8
+            Malloc(layout.size()) as *mut u8
         }
     }
 
@@ -93,7 +92,7 @@ unsafe impl GlobalAlloc for EQMem {
     }
 
     unsafe fn realloc(&self, ptr: *mut u8, _layout: Layout, new_size: usize) -> *mut u8 {
-        if FLAG.load(Ordering::SeqCst) {        
+        if FLAG.load(Ordering::SeqCst) {
             Reallocate(ptr as *mut c_void, new_size) as *mut u8
         } else {
             Realloc(ptr as *mut c_void, new_size) as *mut u8
