@@ -19,6 +19,8 @@ extern "C"
 	void TransferTo(const AllocatorEntry& entry);
 	void SetGlobalLogging(bool enable);
 	void SetLocalLogging(bool enable);
+	void DisplayGlobalAllocations();
+	void DisplayLocalAllocations();
 
 	void* Malloc(std::size_t size);
 	void Free(void* ptr);

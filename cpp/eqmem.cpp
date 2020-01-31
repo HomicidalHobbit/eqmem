@@ -116,6 +116,16 @@ void SetLocalLogging(bool enable)
 	t_logging = enable;
 }
 
+void DisplayGlobalAllocations()
+{
+	g_memManager.DisplayAllocations();
+}
+
+void DisplayLocalAllocations()
+{
+	t_memManager.DisplayAllocations();
+}
+
 void* Reallocate(void* ptr, std::size_t size)
 {
 //	std::cout << "[Reallocating] ";

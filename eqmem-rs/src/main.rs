@@ -1,10 +1,11 @@
 #![allow(dead_code)]
 
-use libc::c_void;
+use libc::{c_char, c_void};
+use std::ffi::CString;
 use std::alloc::{GlobalAlloc, Layout};
 use std::marker::PhantomData;
 use std::mem;
-use std::mem::forget;
+
 use std::sync::atomic::{AtomicBool, Ordering};
 use std::{thread, time};
 
@@ -22,23 +23,30 @@ extern "C" {
     fn Malloc(size: usize) -> *mut c_void;
     fn Free(ptr: *mut c_void);
     fn Realloc(ptr: *mut c_void, new_size: usize) -> *mut c_void;
+    fn SetName(name: *const c_char);
+    fn DisplayLocalAllocations();
 }
 
 fn main() {
+    unsafe { DisplayLocalAllocations(); }
     println!("Hello, world!");
     //FLAG.store(true, Ordering::Relaxed);
     unsafe {
+        set_name("Main Thread");
         SetLocalLogging(true);
     }
 
     let t = thread::spawn(move || {
-        let secs = time::Duration::from_secs(1);
-        thread::sleep(secs);
+        println!("Thread2");
+        //let secs = time::Duration::from_secs(1);
+        //thread::sleep(secs);
         unsafe {
+            set_name("Second Thread");
             SetLocalLogging(true);
-            let ptr = LocalAllocate(1024 * 1024 * 128, 0);
-            Deallocate(ptr);
-            let _b = BinVec::<usize>::with_capacity(8192, 0);
+            //let ptr = LocalAllocate(1024 * 1024 * 128, 0);
+            //Deallocate(ptr);
+            //let _b = BinVec::<usize>::with_capacity(8192, 0);
+            DisplayLocalAllocations();
         }
     });
 
@@ -47,7 +55,7 @@ fn main() {
         Deallocate(ptr);
         t.join().unwrap();
     }
-    //let _b = BinVec::<usize>::with_capacity(1024, 0);
+    let _b = BinVec::<usize>::with_capacity(1024, 0);
 
     println!("HERE");
     //FLAG.store(false, Ordering::Relaxed);
@@ -97,5 +105,12 @@ unsafe impl GlobalAlloc for EQMem {
         } else {
             Realloc(ptr as *mut c_void, new_size) as *mut u8
         }
+    }
+}
+
+fn set_name(name: &str) {
+    let cstr = CString::new(name).expect("Cannot Create CString!!");
+    unsafe {
+        SetName(cstr.as_ptr());
     }
 }

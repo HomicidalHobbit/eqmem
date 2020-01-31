@@ -57,6 +57,7 @@ public:
 	const std::size_t GetThreadID() const { return m_id; } 
 	const std::size_t TotalAllocated() const { return m_allocated; }
 	const std::string& GetName() const { return m_name; }
+	void DisplayAllocations();	
 	static int SetTags(const char* name);
 	static void SetLeakWarning(bool enable);
 

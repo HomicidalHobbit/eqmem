@@ -113,16 +113,33 @@ MemManager::~MemManager()
 				"' " << ptr.first << " of size ";
 				ReportSize(size);
 				std::cout << std::endl;
+				free(ptr.first);
 			}
-			m_map.clear();
 		}
+		m_map.clear();
+		std::cout << "size: " << m_map.size() << std::endl;
 	}
 	if (!--g_managerCount)
 	{
 		delete g_global_mutex;
 		delete g_tags;	
 		std::cout << "Shutting Down EQMem!" << std::endl;		
-	}	
+	}
+}
+
+void MemManager::DisplayAllocations()
+{
+	std::size_t index = 0;
+	std::cout << "Current Allocations for ";
+	DisplayThread();
+	std::cout << std::endl;
+	for (const auto& ptr : m_map)
+	{
+		std::cout << index++ << "\t" << ptr.first << " size: ";
+		ReportSize(ptr.second.m_size);
+		std::cout << std::endl;
+	}
+	std::cout << "Bucket Count: " << m_map.bucket_count() << std::endl;
 }
 
 void MemManager::DisplayThread()
@@ -231,7 +248,7 @@ void* MemManager::Allocate(std::size_t size, int tag, Allocator allocator)
 	if (!ptr)
 	{
 		ptr = malloc(size);
-		m_map[ptr] = AllocatorEntry{ size, tag, allocator};	
+		m_map.emplace(ptr, AllocatorEntry{ size, tag, allocator});	
 		g_allocated += size;
 		m_allocated += size;
 	}
@@ -339,7 +356,9 @@ void MemManager::SetName(const char* name)
 	m_name = name;
 	if ((m_isGlobal && g_logging) || (!m_isGlobal && t_logging))
 	{
-		std::cout << "Thread " << m_tid << " named " << m_name << std::endl;
+		std::cout << "Thread " << m_tid << " is now named ";
+		DisplayThread();
+		std::cout << std::endl;
 	}
 }
 
