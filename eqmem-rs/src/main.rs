@@ -28,7 +28,7 @@ extern "C" {
 }
 
 fn main() {
-    unsafe { DisplayLocalAllocations(); }
+    //unsafe { DisplayLocalAllocations(); }
     println!("Hello, world!");
     //FLAG.store(true, Ordering::Relaxed);
     unsafe {
@@ -37,16 +37,15 @@ fn main() {
     }
 
     let t = thread::spawn(move || {
-        println!("Thread2");
-        //let secs = time::Duration::from_secs(1);
-        //thread::sleep(secs);
+        let secs = time::Duration::from_secs(1);
+        thread::sleep(secs);
         unsafe {
             set_name("Second Thread");
             SetLocalLogging(true);
-            //let ptr = LocalAllocate(1024 * 1024 * 128, 0);
-            //Deallocate(ptr);
-            //let _b = BinVec::<usize>::with_capacity(8192, 0);
-            DisplayLocalAllocations();
+            let ptr = LocalAllocate(1024 * 1024 * 128, 0);
+            Deallocate(ptr);
+            let _b = BinVec::<usize>::with_capacity(8192, 0);
+            //DisplayLocalAllocations();
         }
     });
 
@@ -56,8 +55,6 @@ fn main() {
         t.join().unwrap();
     }
     let _b = BinVec::<usize>::with_capacity(1024, 0);
-
-    println!("HERE");
     //FLAG.store(false, Ordering::Relaxed);
 }
 

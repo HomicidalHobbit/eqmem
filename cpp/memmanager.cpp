@@ -25,6 +25,9 @@ std::atomic<bool> g_initialised(false);
 std::vector<std::string> g_allocators;
 std::mutex* g_global_mutex = nullptr;
 std::vector<std::string>* g_tags = nullptr;
+std::atomic<bool> g_transients_waiting(false);
+std::mutex* g_transient_mutex = nullptr;
+std::vector<void*> g_transients;
 
 MemManager::MemManager(bool threadsafe)
 : m_isGlobal(threadsafe)
@@ -41,6 +44,7 @@ MemManager::MemManager(bool threadsafe)
 		g_initialised = true;
 		std::cout << "Starting EQMem!\n";
 		g_global_mutex = new std::mutex;
+		g_transient_mutex = new std::mutex;
 		const std::lock_guard<std::mutex>lock(*g_global_mutex);
 		g_tags = new std::vector<std::string>;
 		g_tags->emplace_back("Default");
@@ -64,16 +68,6 @@ MemManager::MemManager(bool threadsafe)
 
 MemManager::~MemManager()
 {
-	std::cout << "BYE from: ";
-	if (m_isGlobal)
-	{
-		std::cout << "Global MemManager";
-	} 
-	else
-	{
-		DisplayThread();
-	}
-	std::cout << std::endl;
 	if (m_used && g_leakWarning)
 	{
 		if (!m_map.empty())
@@ -117,10 +111,10 @@ MemManager::~MemManager()
 			}
 		}
 		m_map.clear();
-		std::cout << "size: " << m_map.size() << std::endl;
 	}
 	if (!--g_managerCount)
 	{
+		delete g_transient_mutex;
 		delete g_global_mutex;
 		delete g_tags;	
 		std::cout << "Shutting Down EQMem!" << std::endl;		
@@ -274,7 +268,7 @@ void* MemManager::Allocate(std::size_t size, int tag, Allocator allocator)
 			std::cout << "to: " << 
 			ptr << " - thread memory: "; 
 			ReportSize(m_allocated);
-			std::cout << "total memory: "; 
+			std::cout << ", total memory: "; 
 			ReportSize(g_allocated);
 			std::cout << std::endl;	
 		}
@@ -342,7 +336,7 @@ AllocatorEntry MemManager::Deallocate(void* ptr)
 				std::cout << "at: " << 
 				ptr << " - thread_memory: ";
 				ReportSize(m_allocated);
-				std::cout << "total memory: ";
+				std::cout << ", total memory: ";
 				ReportSize(g_allocated);
 				std::cout << std::endl;
 			}

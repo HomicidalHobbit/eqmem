@@ -1,5 +1,6 @@
 #include "eqmem.h"
 
+#include <atomic>
 #include <iostream>
 #include <mutex>
 
@@ -42,13 +43,36 @@ void* LocalAllocate(std::size_t size, int tag)
 
 void Deallocate(void* ptr)
 {
+	// Check for any waiting transients
+	if (g_transients_waiting)
+	{
+		const std::lock_guard<std::mutex>lock(*g_transient_mutex);
+		for (auto it = g_transients.begin(); it != g_transients.end(); )
+		{
+			AllocatorEntry entry = t_memManager.Deallocate(*it);
+			if (entry.m_size)
+			{
+				std::cout << "deallocated transient" << std::endl;
+				it = g_transients.erase(it);
+			}
+			else
+			{
+				++it;
+			}
+		}
+		if (g_transients.empty())
+		{
+			g_transients_waiting = false;
+		}
+	}
+
 	AllocatorEntry entry = t_memManager.Deallocate(ptr);
 
 	// If we couldn't find the thread local entry, then we check the global one under a lock
 	if (!entry.m_size)
 	{
 		t_memManager.DisplayThread();
-		std::cout << "could not find " << ptr;
+		//std::cout << "could not find " << ptr;
 		const std::lock_guard<std::mutex>lock(*g_global_mutex);
 		{
 			entry = g_memManager.Deallocate(ptr);
@@ -56,11 +80,15 @@ void Deallocate(void* ptr)
 		if (!entry.m_size)
 		{
 			std::cout << " ERROR: Cannot locate " << ptr << " in Global Manager!!!" << std::endl;
-			free(ptr);
+			
+			// Mark as transient for other threads
+			const std::lock_guard<std::mutex>lock(*g_transient_mutex);
+			g_transients.push_back(ptr);
+			g_transients_waiting = true;
 		}
 		else
 		{
-			std::cout << ptr << " was found in Global Manager" << std::endl;
+			//std::cout << ptr << " was found in Global Manager" << std::endl;
 			free(ptr);
 		}
 	}
