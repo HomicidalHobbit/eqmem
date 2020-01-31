@@ -79,7 +79,7 @@ void Deallocate(void* ptr)
 		}
 		if (!entry.m_size)
 		{
-			std::cout << " ERROR: Cannot locate " << ptr << " in Global Manager!!!" << std::endl;
+			//std::cout << " ERROR: Cannot locate " << ptr << " in Global Manager!!!" << std::endl;
 			
 			// Mark as transient for other threads
 			const std::lock_guard<std::mutex>lock(*g_transient_mutex);

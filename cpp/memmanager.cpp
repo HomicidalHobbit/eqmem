@@ -70,7 +70,7 @@ MemManager::~MemManager()
 {
 	if (m_used && g_leakWarning)
 	{
-		if (!m_map.empty())
+		if (!m_memTracker.Empty())
 		{
 			if (m_isGlobal)
 			{
@@ -110,7 +110,7 @@ MemManager::~MemManager()
 				free(ptr.first);
 			}
 		}
-		m_map.clear();
+		//m_map.clear();
 	}
 	if (!--g_managerCount)
 	{
@@ -225,7 +225,7 @@ Bucket* MemManager::FindBucket(std::size_t size)
 void* MemManager::Allocate(std::size_t size, int tag, Allocator allocator)
 {
 	void* ptr = nullptr;
-	
+	/*
 	if (size <= MAX_BUCKET_ENTRY_SIZE)
 	{
 		if (Bucket* bucket = FindBucket(size))
@@ -238,11 +238,12 @@ void* MemManager::Allocate(std::size_t size, int tag, Allocator allocator)
 			}
 		}
 	}
-	
+	*/
 	if (!ptr)
 	{
 		ptr = malloc(size);
 		m_map.emplace(ptr, AllocatorEntry{ size, tag, allocator});	
+		m_memTracker.StoreAllocatorEntry(ptr, size, tag, allocator);
 		g_allocated += size;
 		m_allocated += size;
 	}
@@ -284,16 +285,18 @@ void* MemManager::Allocate(const AllocatorEntry& entry)
 
 AllocatorEntry MemManager::Deallocate(void* ptr)
 {
+	int index = m_memTracker.FindAllocatorEntry(ptr);
 	AllocatorEntry entry;
 	auto search = m_map.find(ptr);
-	if (search == m_map.end())
+	if (!index)
 	{
 		entry.m_size = 0;
 	}
 	else 
 	{
 		std::size_t size;
-		entry = search->second;
+		entry = m_memTracker.GetAllocatorEntry(index);
+//		entry = search->second;
 		switch (entry.m_allocator)
 		{
 			case Default_Bucket:
@@ -314,7 +317,8 @@ AllocatorEntry MemManager::Deallocate(void* ptr)
 				g_allocated -= size;
 		}
 
-		m_map.erase(search);	
+		m_map.erase(search);
+		m_memTracker.EraseAllocatorEntry(index);	
 		if (m_isGlobal && g_logging)
 		{
 			DisplayTime();

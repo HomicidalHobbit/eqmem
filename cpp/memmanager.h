@@ -7,27 +7,15 @@
 #include <unordered_map>
 #include <vector>
 
+#include "memtracker.h"
+
 //#include "eqmem.h"
-
-enum Allocator
-{
-	Default,
-	Local,
-	Default_Bucket,
-	Local_Bucket
-};
-
-struct AllocatorEntry
-{
-	std::size_t m_size;
-	int m_tag;
-	Allocator m_allocator;
-};
 
 #define THREADSAFE true
 
 class Bin;
 class Bucket;
+class MemTracker;
 
 // Hashing algorithm merely returns the ptr value as a std::size_t, as it already represents a unique hash
 struct PtrHash
@@ -63,6 +51,7 @@ public:
 
 private:
 	std::unordered_map<void*, AllocatorEntry, PtrHash> m_map;
+	MemTracker m_memTracker;
 	std::vector<std::unique_ptr<Bucket>> m_buckets;
 	std::vector<std::unique_ptr<Bin>> m_bins;
 	std::mutex m_bin_mutex;
