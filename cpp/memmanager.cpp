@@ -83,6 +83,7 @@ MemManager::~MemManager()
 				std::cout << std::endl;
 			}
 			
+			/*
 			std::size_t index = 0;
 			for (const auto& allocatorEntry : m_memTracker.m_allocatorEntry)
 			{
@@ -110,8 +111,8 @@ MemManager::~MemManager()
 				std::cout << std::endl;
 				free(m_memTracker.m_ptr[index++]);
 			}
+			*/
 		}
-		//m_map.clear();
 	}
 	if (!--g_managerCount)
 	{
@@ -127,12 +128,16 @@ void MemManager::DisplayAllocations()
 	std::cout << "Current Allocations for ";
 	DisplayThread();
 	std::cout << std::endl;
-	std::size_t index = 0;
-	for (const auto& ptr : m_memTracker.m_ptr)
+	std::size_t count = 0;
+	for (std::size_t b = 0; b < 16; ++b)
 	{
-		std::cout << index << "\t" << ptr << " size: ";
-		ReportSize(m_memTracker.m_allocatorEntry[index++].m_size);
-		std::cout << std::endl;
+		std::size_t index = 0;
+		for (const auto& ptr : m_memTracker.m_ptr[b])
+		{
+			std::cout << count++ << "\t" << ptr << " size: ";
+			ReportSize(m_memTracker.m_allocatorEntry[b][index++].m_size);
+			std::cout << std::endl;		
+		}
 	}
 }
 
@@ -279,7 +284,7 @@ void* MemManager::Allocate(std::size_t size, int tag, Allocator allocator)
 
 AllocatorEntry MemManager::Deallocate(void* ptr)
 {
-	int index = m_memTracker.FindAllocatorEntry(ptr);
+	std::size_t index = m_memTracker.FindAllocatorEntry(ptr);
 	AllocatorEntry entry;
 
 	if (!index)

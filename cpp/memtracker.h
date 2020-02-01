@@ -24,11 +24,11 @@ public:
 	MemTracker();
 	~MemTracker();
 	void StoreAllocatorEntry(void * ptr, std::size_t size, int tag, Allocator allocator);
-	int FindAllocatorEntry(void* ptr);
-	const AllocatorEntry& GetAllocatorEntry(int index);
-	void EraseAllocatorEntry(int index);
-	const bool Empty() const { return m_ptr.empty(); }
+	std::size_t FindAllocatorEntry(void* ptr);
+	const AllocatorEntry& GetAllocatorEntry(std::size_t index);
+	void EraseAllocatorEntry(std::size_t index);
+	const bool Empty();
 
-	std::vector<void*> m_ptr;
-	std::vector<AllocatorEntry> m_allocatorEntry;
+	std::vector<std::vector<void*>> m_ptr;
+	std::vector<std::vector<AllocatorEntry>> m_allocatorEntry;
 };
