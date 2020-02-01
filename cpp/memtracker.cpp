@@ -1,5 +1,4 @@
 #include "memtracker.h"
-
 #include <iostream>
 
 
@@ -16,6 +15,7 @@ MemTracker::MemTracker()
 
 MemTracker::~MemTracker()
 {
+	std::cout << "EXIT MemTracker!!!" << std::endl;
 }
 
 const bool MemTracker::Empty()

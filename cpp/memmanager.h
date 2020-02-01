@@ -49,7 +49,7 @@ public:
 	static void SetLeakWarning(bool enable);
 
 private:
-	MemTracker m_memTracker;
+	MemTracker* m_memTracker;
 	std::vector<std::unique_ptr<Bucket>> m_buckets;
 	std::vector<std::unique_ptr<Bin>> m_bins;
 	std::mutex m_bin_mutex;
@@ -67,7 +67,7 @@ class ThreadMemManager
 public:
 	ThreadMemManager();
 	~ThreadMemManager();
-	MemManager& GetMemManager() { return *m_memManager; }
+	MemManager* GetMemManager() { return m_memManager; }
 
 private:
 	MemManager* m_memManager;
@@ -80,6 +80,6 @@ extern bool g_logging;
 extern std::mutex* g_transient_mutex;
 extern std::vector<void*> g_transients;
 extern std::atomic<bool> g_transients_waiting;
-extern thread_local ThreadMemManager t_threadMemManager;
+extern thread_local std::unique_ptr<ThreadMemManager> t_threadMemManager;
 extern thread_local bool t_logging;
 

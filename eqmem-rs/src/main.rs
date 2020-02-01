@@ -35,7 +35,7 @@ fn main() {
     unsafe {
         SetLocalLogging(true);
     }
-
+    
     let t = thread::spawn(move || {
         let secs = time::Duration::from_secs(1);
         thread::sleep(secs);

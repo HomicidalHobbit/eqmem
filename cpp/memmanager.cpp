@@ -13,10 +13,8 @@
 #define MAX_BUCKET_ENTRY_SIZE 256
 
 //thread_local MemManager t_memManager;
-thread_local std::thread::id t_tid;
 thread_local bool t_logging(true);
-
-thread_local ThreadMemManager t_threadMemManager;
+thread_local std::unique_ptr<ThreadMemManager> t_threadMemManager(new ThreadMemManager);
 
 bool g_logging(true);
 bool g_leakWarning(true);
@@ -38,16 +36,17 @@ ThreadMemManager::ThreadMemManager()
 
 ThreadMemManager::~ThreadMemManager()
 {
+	std::cout << "Deleting ThreadManager" <<std::endl;
 	delete m_memManager;
 }
 
 MemManager::MemManager(bool threadsafe)
-: m_isGlobal(threadsafe)
+: m_memTracker(new MemTracker)
+, m_isGlobal(threadsafe)
 {	
 	m_allocated = 0;
 	m_used = false;
 	m_tid = std::this_thread::get_id();
-	t_tid = m_tid;
 	std::stringstream ss;
 	ss << m_tid;
 	m_id = (std::stoul(ss.str(), nullptr, 16));
@@ -80,9 +79,10 @@ MemManager::MemManager(bool threadsafe)
 
 MemManager::~MemManager()
 {
+	std::cout << "EXIT MemManager!!!" << std::endl;
 	if (m_used && g_leakWarning)
 	{
-		if (!m_memTracker.Empty())
+		if (!m_memTracker->Empty())
 		{
 			if (m_isGlobal)
 			{
@@ -133,22 +133,30 @@ MemManager::~MemManager()
 		delete g_tags;	
 		std::cout << "Shutting Down EQMem!" << std::endl;		
 	}
+	if (m_memTracker != nullptr)
+	{
+		delete m_memTracker;
+		m_memTracker = nullptr; 
+	}
 }
 
 void MemManager::DisplayAllocations()
 {
-	std::cout << "Current Allocations for ";
-	DisplayThread();
-	std::cout << std::endl;
-	std::size_t count = 0;
-	for (std::size_t b = 0; b < 16; ++b)
+	if (m_memTracker)
 	{
-		std::size_t index = 0;
-		for (const auto& ptr : m_memTracker.m_ptr[b])
+		std::cout << "Current Allocations for ";
+		DisplayThread();
+		std::cout << std::endl;
+		std::size_t count = 0;
+		for (std::size_t b = 0; b < 16; ++b)
 		{
-			std::cout << count++ << "\t" << ptr << " size: ";
-			ReportSize(m_memTracker.m_allocatorEntry[b][index++].m_size);
-			std::cout << std::endl;		
+			std::size_t index = 0;
+			for (const auto& ptr : m_memTracker->m_ptr[b])
+			{
+				std::cout << count++ << "\t" << ptr << " size: ";
+				ReportSize(m_memTracker->m_allocatorEntry[b][index++].m_size);
+				std::cout << std::endl;		
+			}
 		}
 	}
 }
@@ -259,7 +267,10 @@ void* MemManager::Allocate(std::size_t size, int tag, Allocator allocator)
 	if (!ptr)
 	{
 		ptr = malloc(size);	
-		m_memTracker.StoreAllocatorEntry(ptr, size, tag, allocator);
+		if (m_memTracker)
+		{
+			m_memTracker->StoreAllocatorEntry(ptr, size, tag, allocator);
+		}
 		g_allocated += size;
 		m_allocated += size;
 	}
@@ -296,8 +307,13 @@ void* MemManager::Allocate(std::size_t size, int tag, Allocator allocator)
 
 AllocatorEntry MemManager::Deallocate(void* ptr)
 {
-	std::size_t index = m_memTracker.FindAllocatorEntry(ptr);
 	AllocatorEntry entry;
+	if (!m_memTracker)
+	{
+		entry.m_size = 0;
+		return entry;
+	}
+	std::size_t index = m_memTracker->FindAllocatorEntry(ptr);
 
 	if (!index)
 	{
@@ -306,7 +322,7 @@ AllocatorEntry MemManager::Deallocate(void* ptr)
 	else 
 	{
 		std::size_t size;
-		entry = m_memTracker.GetAllocatorEntry(index);
+		entry = m_memTracker->GetAllocatorEntry(index);
 //		entry = search->second;
 		switch (entry.m_allocator)
 		{
@@ -328,7 +344,7 @@ AllocatorEntry MemManager::Deallocate(void* ptr)
 				g_allocated -= size;
 		}
 
-		m_memTracker.EraseAllocatorEntry(index);	
+		m_memTracker->EraseAllocatorEntry(index);	
 		if (m_isGlobal && g_logging)
 		{
 			DisplayTime();
