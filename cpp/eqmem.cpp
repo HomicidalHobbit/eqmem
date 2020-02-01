@@ -19,17 +19,6 @@ void SetName(const char* name)
 	t_memManager.SetName(name);
 }
 
-// Remove allocation record from thread
-inline AllocatorEntry TransferFrom(void* ptr)
-{
-	return t_memManager.Deallocate(ptr);
-}
-
-inline void TransferTo(const AllocatorEntry& entry)
-{
-	t_memManager.Allocate(entry);
-}
-
 void* Allocate(std::size_t size, int tag)
 {
 	const std::lock_guard<std::mutex>lock(*g_global_mutex);
@@ -52,7 +41,6 @@ void Deallocate(void* ptr)
 			AllocatorEntry entry = t_memManager.Deallocate(*it);
 			if (entry.m_size)
 			{
-				std::cout << "deallocated transient" << std::endl;
 				it = g_transients.erase(it);
 			}
 			else
@@ -71,16 +59,12 @@ void Deallocate(void* ptr)
 	// If we couldn't find the thread local entry, then we check the global one under a lock
 	if (!entry.m_size)
 	{
-		t_memManager.DisplayThread();
-		//std::cout << "could not find " << ptr;
 		const std::lock_guard<std::mutex>lock(*g_global_mutex);
 		{
 			entry = g_memManager.Deallocate(ptr);
 		}
 		if (!entry.m_size)
-		{
-			//std::cout << " ERROR: Cannot locate " << ptr << " in Global Manager!!!" << std::endl;
-			
+		{	
 			// Mark as transient for other threads
 			const std::lock_guard<std::mutex>lock(*g_transient_mutex);
 			g_transients.push_back(ptr);
@@ -88,7 +72,7 @@ void Deallocate(void* ptr)
 		}
 		else
 		{
-			//std::cout << ptr << " was found in Global Manager" << std::endl;
+			// Global allocator frees
 			free(ptr);
 		}
 	}

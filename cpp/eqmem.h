@@ -15,8 +15,6 @@ extern "C"
 	void CreateLocalBucket(std::size_t size);
 	void SetName(const char* name);
 	std::size_t SetTags(const char* name);
-	AllocatorEntry TransferFrom(void* ptr);
-	void TransferTo(const AllocatorEntry& entry);
 	void SetGlobalLogging(bool enable);
 	void SetLocalLogging(bool enable);
 	void DisplayGlobalAllocations();

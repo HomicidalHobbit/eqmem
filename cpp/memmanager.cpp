@@ -82,32 +82,33 @@ MemManager::~MemManager()
 				DisplayThread();
 				std::cout << std::endl;
 			}
-	
-			for (const auto& ptr : m_map)
+			
+			std::size_t index = 0;
+			for (const auto& allocatorEntry : m_memTracker.m_allocatorEntry)
 			{
 				std::size_t size;
-				switch (ptr.second.m_allocator)
+				switch (allocatorEntry.m_allocator)
 				{
 					case Default_Bucket:
 					{
-						size = reinterpret_cast<Bucket*>(ptr.second.m_size)->GetSlotSize();
+						size = reinterpret_cast<Bucket*>(allocatorEntry.m_size)->GetSlotSize();
 						break;
 					}
 
 					case Local_Bucket:
 					{
-						size = reinterpret_cast<Bucket*>(ptr.second.m_size)->GetSlotSize();
+						size = reinterpret_cast<Bucket*>(allocatorEntry.m_size)->GetSlotSize();
 						break;
 					}
 
 					default:
-						size = ptr.second.m_size;
+						size = allocatorEntry.m_size;
 				}
-				std::cout << "'" << g_tags->at(ptr.second.m_tag) <<
-				"' " << ptr.first << " of size ";
+				std::cout << "'" << g_tags->at(allocatorEntry.m_tag) <<
+				"' " << m_memTracker.m_ptr[index] << " of size ";
 				ReportSize(size);
 				std::cout << std::endl;
-				free(ptr.first);
+				free(m_memTracker.m_ptr[index++]);
 			}
 		}
 		//m_map.clear();
@@ -123,17 +124,16 @@ MemManager::~MemManager()
 
 void MemManager::DisplayAllocations()
 {
-	std::size_t index = 0;
 	std::cout << "Current Allocations for ";
 	DisplayThread();
 	std::cout << std::endl;
-	for (const auto& ptr : m_map)
+	std::size_t index = 0;
+	for (const auto& ptr : m_memTracker.m_ptr)
 	{
-		std::cout << index++ << "\t" << ptr.first << " size: ";
-		ReportSize(ptr.second.m_size);
+		std::cout << index << "\t" << ptr << " size: ";
+		ReportSize(m_memTracker.m_allocatorEntry[index++].m_size);
 		std::cout << std::endl;
 	}
-	std::cout << "Bucket Count: " << m_map.bucket_count() << std::endl;
 }
 
 void MemManager::DisplayThread()
@@ -241,8 +241,7 @@ void* MemManager::Allocate(std::size_t size, int tag, Allocator allocator)
 	*/
 	if (!ptr)
 	{
-		ptr = malloc(size);
-		m_map.emplace(ptr, AllocatorEntry{ size, tag, allocator});	
+		ptr = malloc(size);	
 		m_memTracker.StoreAllocatorEntry(ptr, size, tag, allocator);
 		g_allocated += size;
 		m_allocated += size;
@@ -278,16 +277,11 @@ void* MemManager::Allocate(std::size_t size, int tag, Allocator allocator)
 	return ptr;
 }
 
-void* MemManager::Allocate(const AllocatorEntry& entry)
-{
-	return nullptr;
-}
-
 AllocatorEntry MemManager::Deallocate(void* ptr)
 {
 	int index = m_memTracker.FindAllocatorEntry(ptr);
 	AllocatorEntry entry;
-	auto search = m_map.find(ptr);
+
 	if (!index)
 	{
 		entry.m_size = 0;
@@ -317,7 +311,6 @@ AllocatorEntry MemManager::Deallocate(void* ptr)
 				g_allocated -= size;
 		}
 
-		m_map.erase(search);
 		m_memTracker.EraseAllocatorEntry(index);	
 		if (m_isGlobal && g_logging)
 		{

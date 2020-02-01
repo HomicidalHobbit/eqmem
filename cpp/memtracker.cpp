@@ -5,12 +5,10 @@
 
 MemTracker::MemTracker()
 {
-	std::cout << "MemTracker Start" << std::endl;
 }
 
 MemTracker::~MemTracker()
 {
-	std::cout << "MemTracker End" << std::endl;
 }
 
 void MemTracker::StoreAllocatorEntry(void *ptr, std::size_t size, int tag, Allocator allocator)
@@ -39,7 +37,7 @@ const AllocatorEntry& MemTracker::GetAllocatorEntry(int index)
 
 void MemTracker::EraseAllocatorEntry(int index)
 {
-	std::cout << "index: " << index << std::endl;
+//	std::cout << "index: " << index << std::endl;
 	int i = index - 1;
 	m_ptr.erase(m_ptr.begin() + i);
 	m_allocatorEntry.erase(m_allocatorEntry.begin() + i);

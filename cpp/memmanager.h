@@ -33,7 +33,6 @@ public:
 	MemManager(bool threadsafe = false);
 	~MemManager();
 	void* Allocate(std::size_t size, int tag, Allocator allocator);
-	void* Allocate(const AllocatorEntry& entry);
 	void AddBucket(std::size_t size);
 	std::size_t AddBin(std::size_t size);
 	Bucket* FindBucket(std::size_t size);
@@ -50,7 +49,6 @@ public:
 	static void SetLeakWarning(bool enable);
 
 private:
-	std::unordered_map<void*, AllocatorEntry, PtrHash> m_map;
 	MemTracker m_memTracker;
 	std::vector<std::unique_ptr<Bucket>> m_buckets;
 	std::vector<std::unique_ptr<Bin>> m_bins;

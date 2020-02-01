@@ -29,7 +29,6 @@ public:
 	void EraseAllocatorEntry(int index);
 	const bool Empty() const { return m_ptr.empty(); }
 
-private:
 	std::vector<void*> m_ptr;
 	std::vector<AllocatorEntry> m_allocatorEntry;
 };

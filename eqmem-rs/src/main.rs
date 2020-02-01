@@ -1,8 +1,8 @@
 #![allow(dead_code)]
 
 use libc::{c_char, c_void};
-use std::ffi::CString;
 use std::alloc::{GlobalAlloc, Layout};
+use std::ffi::CString;
 use std::marker::PhantomData;
 use std::mem;
 
@@ -30,9 +30,9 @@ extern "C" {
 fn main() {
     //unsafe { DisplayLocalAllocations(); }
     println!("Hello, world!");
+    set_name("Main Thread");
     //FLAG.store(true, Ordering::Relaxed);
     unsafe {
-        set_name("Main Thread");
         SetLocalLogging(true);
     }
 
@@ -45,14 +45,13 @@ fn main() {
             let ptr = LocalAllocate(1024 * 1024 * 128, 0);
             Deallocate(ptr);
             let _b = BinVec::<usize>::with_capacity(8192, 0);
-            //DisplayLocalAllocations();
         }
     });
 
     unsafe {
         let ptr = LocalAllocate(32768, 0);
-        Deallocate(ptr);
         t.join().unwrap();
+        Deallocate(ptr);
     }
     let _b = BinVec::<usize>::with_capacity(1024, 0);
     //FLAG.store(false, Ordering::Relaxed);
