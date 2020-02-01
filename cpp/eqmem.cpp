@@ -16,7 +16,7 @@ std::size_t SetTags(const char* name)
 
 void SetName(const char* name)
 {
-	t_memManager.SetName(name);
+	t_threadMemManager.GetMemManager().SetName(name);
 }
 
 void* Allocate(std::size_t size, int tag)
@@ -27,7 +27,7 @@ void* Allocate(std::size_t size, int tag)
 
 void* LocalAllocate(std::size_t size, int tag)
 {
-	return t_memManager.Allocate(size, tag, Local);	
+	return t_threadMemManager.GetMemManager().Allocate(size, tag, Local);	
 }
 
 void Deallocate(void* ptr)
@@ -38,7 +38,7 @@ void Deallocate(void* ptr)
 		const std::lock_guard<std::mutex>lock(*g_transient_mutex);
 		for (auto it = g_transients.begin(); it != g_transients.end(); )
 		{
-			AllocatorEntry entry = t_memManager.Deallocate(*it);
+			AllocatorEntry entry = t_threadMemManager.GetMemManager().Deallocate(*it);
 			if (entry.m_size)
 			{
 				it = g_transients.erase(it);
@@ -54,7 +54,7 @@ void Deallocate(void* ptr)
 		}
 	}
 
-	AllocatorEntry entry = t_memManager.Deallocate(ptr);
+	AllocatorEntry entry = t_threadMemManager.GetMemManager().Deallocate(ptr);
 
 	// If we couldn't find the thread local entry, then we check the global one under a lock
 	if (!entry.m_size)
@@ -105,7 +105,7 @@ void CreateBucket(std::size_t size)
 	
 void CreateLocalBucket(std::size_t size)
 {
-	t_memManager.AddBucket(size);
+	t_threadMemManager.GetMemManager().AddBucket(size);
 }
 
 std::size_t CreateBin(std::size_t size)
@@ -115,7 +115,7 @@ std::size_t CreateBin(std::size_t size)
 	
 std::size_t CreateLocalBin(std::size_t size)
 {
-	return t_memManager.AddBin(size);
+	return t_threadMemManager.GetMemManager().AddBin(size);
 }
 
 void SetGlobalLogging(bool enable)
@@ -135,7 +135,7 @@ void DisplayGlobalAllocations()
 
 void DisplayLocalAllocations()
 {
-	t_memManager.DisplayAllocations();
+	t_threadMemManager.GetMemManager().DisplayAllocations();
 }
 
 void* Reallocate(void* ptr, std::size_t size)

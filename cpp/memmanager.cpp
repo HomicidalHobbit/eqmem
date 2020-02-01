@@ -12,9 +12,11 @@
 
 #define MAX_BUCKET_ENTRY_SIZE 256
 
-thread_local MemManager t_memManager;
+//thread_local MemManager t_memManager;
 thread_local std::thread::id t_tid;
 thread_local bool t_logging(true);
+
+thread_local ThreadMemManager t_threadMemManager;
 
 bool g_logging(true);
 bool g_leakWarning(true);
@@ -28,6 +30,16 @@ std::vector<std::string>* g_tags = nullptr;
 std::atomic<bool> g_transients_waiting(false);
 std::mutex* g_transient_mutex = nullptr;
 std::vector<void*> g_transients;
+
+ThreadMemManager::ThreadMemManager()
+{
+	m_memManager = new MemManager();
+}
+
+ThreadMemManager::~ThreadMemManager()
+{
+	delete m_memManager;
+}
 
 MemManager::MemManager(bool threadsafe)
 : m_isGlobal(threadsafe)

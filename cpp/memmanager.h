@@ -62,6 +62,17 @@ private:
 	bool m_used;
 };
 
+class ThreadMemManager
+{
+public:
+	ThreadMemManager();
+	~ThreadMemManager();
+	MemManager& GetMemManager() { return *m_memManager; }
+
+private:
+	MemManager* m_memManager;
+};
+
 extern std::mutex* g_global_mutex;
 extern MemManager g_memManager;
 extern std::vector<std::string>* g_tags;
@@ -69,6 +80,6 @@ extern bool g_logging;
 extern std::mutex* g_transient_mutex;
 extern std::vector<void*> g_transients;
 extern std::atomic<bool> g_transients_waiting;
-extern thread_local MemManager t_memManager;
+extern thread_local ThreadMemManager t_threadMemManager;
 extern thread_local bool t_logging;
 
