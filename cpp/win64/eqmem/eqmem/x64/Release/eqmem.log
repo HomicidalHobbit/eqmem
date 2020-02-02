@@ -1,6 +1,0 @@
-﻿  bin.cpp
-  bucket.cpp
-  eqmem.cpp
-  memmanager.cpp
-  memtracker.cpp
-  eqmem.vcxproj -> C:\Users\richa\dev\eqmem\cpp\win64\eqmem\x64\Release\eqmem.lib
