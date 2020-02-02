@@ -1,0 +1,6 @@
+﻿  eqmemtest.cpp
+  Generating code
+  Previous IPDB not found, fall back to full compilation.
+  All 731 functions were compiled because no usable IPDB/IOBJ from previous compilation was found.
+  Finished generating code
+  eqmemtest.vcxproj -> C:\Users\richa\dev\eqmem\cpp\win64\eqmemtest\x64\Release\eqmemtest.exe

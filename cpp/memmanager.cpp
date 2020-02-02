@@ -178,7 +178,7 @@ void MemManager::DisplayTime()
 {
 	std::chrono::system_clock::time_point now = std::chrono::system_clock::now();
 	std::time_t t = std::chrono::system_clock::to_time_t(now);
-	std::cout << std::put_time(std::localtime(&t), "%T") << " ";
+	//std::cout << std::put_time(localtime_s(&t, &buf), "%T") << " ";
 }
 
 void MemManager::ReportSize(std::size_t size)

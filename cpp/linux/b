@@ -3,5 +3,5 @@ ar rc libeqmem.a eqmem.o bin.o bucket.o memmanager.o memtracker.o
 rm -rf ../../lib/linux
 mkdir -p ../../lib/linux
 mv -f libeqmem.a ../../lib/linux
-clang++ -g -std=c++11 -fPIC -Wall -I../ ../main.cpp -L../../lib/linux -leqmem -l pthread -o test -Ofast
+clang++ -g -std=c++11 -fPIC -Wall -I../ ../eqmemtest.cpp -L../../lib/linux -leqmem -l pthread -o test -Ofast
 rm *.o
